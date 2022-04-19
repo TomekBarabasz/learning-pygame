@@ -1,0 +1,17 @@
+{
+    "ship" : {
+        "size" : 15,
+        "color" : [72,54,107],
+        "max_speed" : 10,
+        "acceleration" : 0.01,
+        "rotation_speed" : 1,
+        "missile_initial_speed" : 5
+    },
+    "missile" : {
+        "size" : 2,
+        "lifetime" : 1,
+        "color" :[196,121,23]
+    },
+    "asteroid" : {
+    }
+}
