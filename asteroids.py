@@ -7,6 +7,7 @@ from utils.vector import Vector2
 from dataclasses import dataclass
 from pathlib import Path
 from utils.pygame_utils import *
+from utils.math_utils import *
 
 @dataclass
 class Missile:

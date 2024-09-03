@@ -3,7 +3,7 @@ from pygame.gfxdraw import aacircle,filled_circle,line,filled_polygon
 import argparse, random, math, json
 from datetime import datetime
 import numpy as np
-from vector import Vector2
+from utils.vector import Vector2
 from dataclasses import dataclass
 from pathlib import Path
 
