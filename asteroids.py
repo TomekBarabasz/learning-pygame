@@ -3,9 +3,10 @@ from pygame.gfxdraw import aacircle,filled_circle,line,filled_polygon
 import argparse, random, math, json
 from datetime import datetime
 import numpy as np
-from vector import Vector2
+from utils.vector import Vector2
 from dataclasses import dataclass
 from pathlib import Path
+from utils.pygame_utils import *
 
 @dataclass
 class Missile:
@@ -72,7 +73,7 @@ class Ship:
             dir = Vector2(math.cos(rad), math.sin(rad))
             mpos = self.pos + dir*2*self.config.size
             mspeed = dir*self.config.missile_initial_speed
-            return [Missile(mpos,mspeed,datetime.utcnow())]
+            return [Missile(mpos,mspeed,datetime.now())]
         else:
             return []
     
@@ -81,52 +82,6 @@ class Ship:
     
     def collideWith(self, asteroid, pt):
         self.hitPoints += asteroid.size
-
-def got_quit_event(events):
-    for event in events:
-        if event.type == pygame.QUIT:
-            return True
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE or event.unicode == 'q':
-                return True
-    return False
-  
-def makeRotMatrix(angle):
-    rad = math.radians(angle)
-    c = math.cos(rad)
-    s = math.sin(rad)
-    return np.array([c,-s, s, c]).reshape(2,2)
-
-def rotate(angleOrMatrix, Points):
-    ROT = makeRotMatrix(angle) if type(angleOrMatrix) in [int,float] else angleOrMatrix
-    return ROT.dot(np.array(Points).T).T
-
-def move(dt,Points):
-    if type(dt) is Vector2:
-        dt = (dt.x,dt.y)
-    return np.array(Points)+dt
-
-def rotMove(angle,dt,Points):
-    rad = math.radians(angle)
-    c = math.cos(rad)
-    s = math.sin(rad)
-    ROT = np.array([c,-s, s, c]).reshape(2,2)
-    return move(dt,ROT.dot(np.array(Points).T).T)
-
-def readConfig(filename):
-    class Config:
-        pass
-    def objectify(dict_):
-        cfg = Config()
-        for k,v in dict_.items():
-            if type(v) is dict:
-                setattr(cfg,k,objectify(v))
-            else:
-                setattr(cfg,k,v)    
-        return cfg
-    with Args.config.open() as jsonFile:
-        data = json.load(jsonFile)
-    return objectify(data)
 
 def makeWrap(width,height):
     def wrap(pos,speed):
@@ -147,7 +102,7 @@ def makeBounce(width,height):
     return bounce
 
 def drawMissiles(Config, screen, Missiles, wrap):
-    tm = datetime.utcnow()
+    tm = datetime.now()
     ValidMissiles = []
     for m in Missiles:
         if (tm-m.t0).total_seconds() < Config.lifetime:
@@ -162,7 +117,7 @@ def drawAsteroids(Config, screen, Asteroids, tstart, wrap, screen_size):
         idx = a.size - 1
         aacircle(screen, int(round(a.pos.x)), int(round(a.pos.y)), Config.size[idx], Config.color[idx])
     totWeight = sum( [a.size for a in Asteroids])
-    delta_time = (datetime.utcnow() - tstart).total_seconds()
+    delta_time = (datetime.now() - tstart).total_seconds()
     newWeight = delta_time * Config.weight_inc - totWeight
     weight = Config.weights[-1]
     if newWeight > weight:
@@ -278,25 +233,25 @@ def main(Args):
     ship = Ship(Config.ship, width//2, height//2, wrap)
     Missiles = []
     Asteroids = []
-    tstart= datetime.utcnow()
+    tstart= datetime.now()
     font = pygame.font.SysFont("Arial", 20)
     time_measurements = [0,0,0,0,0,0]
     while True:
-        time_measurements[0] = datetime.utcnow()
+        time_measurements[0] = datetime.now()
         events = pygame.event.get()
         if got_quit_event(events):
             break
         screen.fill(background)
-        time_measurements[1] = datetime.utcnow()
+        time_measurements[1] = datetime.now()
         ship.draw(screen,events)
         Missiles.extend(ship.fire(events))
-        time_measurements[2] = datetime.utcnow()
+        time_measurements[2] = datetime.now()
         Missiles = drawMissiles(Config.missile, screen, Missiles, bounce)
-        time_measurements[3] = datetime.utcnow()
+        time_measurements[3] = datetime.now()
         Asteroids = drawAsteroids(Config.asteroid, screen, Asteroids, tstart, wrap, screen_size)
-        time_measurements[4] = datetime.utcnow()
+        time_measurements[4] = datetime.now()
         Asteroids,Missiles = collide(Config, Asteroids, Missiles, ship)
-        time_measurements[5] = datetime.utcnow()
+        time_measurements[5] = datetime.now()
         tpos = displayPoints(ship,screen,font,(10,10))
         displayTimeStats(time_measurements,screen,font,tpos)
         pygame.display.flip()
